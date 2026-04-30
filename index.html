@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>❤️ 专属告白</title>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
 <style>
 body{margin:0;background:black;overflow:hidden;font-family:Microsoft YaHei;}
 canvas{position:absolute;}
@@ -13,13 +15,14 @@ canvas{position:absolute;}
   transform:translate(-50%,-50%);
   text-align:center;color:white;
 }
-.title{font-size:42px;}
+.title{font-size:36px;}
 .typing{margin-top:20px;font-size:20px;}
 .btn{
-  margin-top:40px;padding:12px 28px;
+  margin-top:20px;padding:10px 25px;
   border-radius:30px;
   background:linear-gradient(45deg,#ff3d6d,#ff7aa2);
 }
+.small{font-size:14px;margin-top:10px;opacity:.7}
 </style>
 </head>
 
@@ -28,27 +31,80 @@ canvas{position:absolute;}
 <canvas id="c"></canvas>
 
 <div class="ui">
-  <div class="title">❤️ 黑蛋 ❤️ XXX</div>
+  <div class="title" id="title"></div>
   <div class="typing" id="text"></div>
+
   <div class="btn" onclick="start()">开启心动 💘</div>
+  <div class="btn" onclick="accept()">❤️ 我愿意</div>
+  <div class="btn" onclick="save()">📸 保存瞬间</div>
+  <div class="btn" onclick="makeQR()">🔗 生成专属二维码</div>
+
+  <canvas id="qr" width="120" height="120"></canvas>
+  <div class="small">长按二维码可分享</div>
 </div>
 
 <audio id="bgm" src="https://music.163.com/song/media/outer/url?id=1824045033.mp3" loop></audio>
 
 <script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+// ===== 名字参数 =====
+const url = new URL(location.href);
+const A = url.searchParams.get("a") || "黑蛋";
+const B = url.searchParams.get("b") || "陈京涛";
+
+document.getElementById("title").innerText = `❤️ ${A} ❤️ ${B}`;
+
+// ===== 打字机 =====
+function typing(){
+  let str = `${B}，不是一时兴起，是认真到想和你有未来...`;
+  let i=0;
+  let el=document.getElementById("text");
+
+  let t=setInterval(()=>{
+    el.innerText=str.substring(0,i++);
+    if(i>str.length) clearInterval(t);
+  },80);
+}
+
+// ===== 音乐 =====
+function start(){
+  document.getElementById("bgm").play();
+  typing();
+  explode();
+}
+
+// ===== 接受动画 =====
+function accept(){
+  alert("❤️ 未来请多指教 ❤️");
+}
+
+// ===== 截图 =====
+function save(){
+  html2canvas(document.body).then(canvas=>{
+    let link=document.createElement("a");
+    link.download="love.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
+}
+
+// ===== 二维码 =====
+function makeQR(){
+  let link = location.origin + location.pathname + `?a=${A}&b=${B}`;
+  QRCode.toCanvas(document.getElementById("qr"), link);
+}
+
+// ===== 粒子系统 =====
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
 
 function resize(){
   canvas.width=innerWidth;
   canvas.height=innerHeight;
 }
-resize();
-onresize=resize;
+resize();onresize=resize;
 
 let particles=[],time=0,mode=0;
 
-// ❤️ 爱心
 function heart(t){
   return {
     x:16*Math.pow(Math.sin(t),3),
@@ -56,7 +112,6 @@ function heart(t){
   }
 }
 
-// 初始化
 for(let t=0;t<Math.PI*2;t+=0.012){
   let h=heart(t);
   particles.push({
@@ -67,32 +122,15 @@ for(let t=0;t<Math.PI*2;t+=0.012){
   });
 }
 
-// 打字机
-let str="不是一时兴起，是认真到想和你有未来...";
-let i=0;
-function typing(){
-  let el=document.getElementById("text");
-  let timer=setInterval(()=>{
-    el.innerText=str.substring(0,i++);
-    if(i>str.length) clearInterval(timer);
-  },80);
-}
-
-// 点击触发
-function start(){
-  document.getElementById("bgm").play();
-  typing();
-
+function explode(){
   mode=1;
   particles.forEach(p=>{
     p.vx=(Math.random()-0.5)*20;
     p.vy=(Math.random()-0.5)*20;
   });
-
   setTimeout(()=>mode=2,1500);
 }
 
-// 动画
 function draw(){
   requestAnimationFrame(draw);
 
@@ -102,14 +140,13 @@ function draw(){
   time+=0.05;
   let scale=10+Math.sin(time)*2;
 
-  // ⭐ 星空
-  for(let i=0;i<80;i++){
+  // 星空
+  for(let i=0;i<60;i++){
     ctx.fillStyle="white";
     ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1,1);
   }
 
   particles.forEach(p=>{
-
     if(mode===0){
       let tx=p.baseX*scale;
       let ty=-p.baseY*scale;
@@ -129,7 +166,6 @@ function draw(){
     let px=p.x+canvas.width/2;
     let py=p.y+canvas.height/2;
 
-    // 泛光
     for(let i=0;i<4;i++){
       ctx.beginPath();
       ctx.arc(px,py,2+i*3,0,Math.PI*2);
@@ -145,6 +181,9 @@ function draw(){
 }
 draw();
 </script>
+
+<!-- 截图库 -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
